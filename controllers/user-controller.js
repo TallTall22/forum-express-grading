@@ -24,6 +24,18 @@ const usercontroller = {
         res.redirect('/signin')
       })
       .catch(err => next(err))
+  },
+  signInPage: (req, res) => {
+    res.render('signin')
+  },
+  signIn: (req, res) => {
+    req.flash('success_msg', 'Login successed')
+    res.redirect('/restaurant')
+  },
+  logout: (req, res) => {
+    req.logout()
+    req.flash('success_msg', 'Logout successed')
+    res.redirect('/signin')
   }
 }
 
