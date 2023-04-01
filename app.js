@@ -1,10 +1,12 @@
 const express = require('express')
 const routes = require('./routes')
+const path = require('path')
 
 const exphbs = require('express-handlebars') // 引入 express-handlebars
 const session = require('express-session')
 const flash = require('connect-flash')
 const usePassport = require('./config/passport')
+const methodOverride = require('method-override')
 
 const { getUser } = require('./helpers/auth-helpers')
 const handlebarsHelpers = require('./helpers/handlebars-helper')
@@ -20,6 +22,9 @@ app.set('view engine', 'hbs')
 // set body-parser
 app.use(express.urlencoded({ extended: true }))
 
+app.use(methodOverride('_method'))
+
+app.use('/upload', express.static(path.join(__dirname, 'upload')))
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: true }))
 usePassport(app)
 app.use(flash())
