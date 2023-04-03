@@ -2,6 +2,11 @@
 const faker = require('faker')
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    const categories = await queryInterface.sequelize.query(
+      'Select id from Categories;',
+      { type: queryInterface.sequelize.QueryTypes.SELECT }
+    )
+
     await queryInterface.bulkInsert('Restaurants', Array.from({ length: 50 }, () => ({
       name: faker.name.findName(),
       tel: faker.phone.phoneNumber(),
@@ -10,11 +15,12 @@ module.exports = {
       image: `https://loremflickr.com/320/240/restaurant,food/?random=${Math.random() * 100}`,
       description: faker.lorem.text(),
       created_at: new Date(),
-      updated_at: new Date()
+      updated_at: new Date(),
+      category_id: categories[Math.floor(Math.random() * categories.length)].id
     })))
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('Restaurant', {})
+    await queryInterface.bulkDelete('Restaurants', {})
   }
 }
