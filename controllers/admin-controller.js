@@ -1,4 +1,4 @@
-const { Restaurant } = require('../models')
+const { Restaurant, User } = require('../models')
 const { localFileHandler } = require('../helpers/file-helper')
 
 const adminController = {
@@ -88,6 +88,26 @@ const adminController = {
         return restaurant.destroy()
       })
       .then(() => res.redirect('/admin/restaurants'))
+      .catch(err => next(err))
+  },
+  getUsers: (req, res, next) => {
+    User.findAll({
+      raw: true
+    })
+      .then(users => res.render('admin/users', { users }))
+      .catch(err => next(err))
+  },
+  patchUser: (req, res, next) => {
+    const id = req.params.id
+    User.findByPk(id)
+      .then(user => {
+        if (user.email === process.env.SUPER_USER_EMAIL) throw new Error('This user permission can not be change')
+        return user.update({ isAdmin: !user.isAdmin })
+      })
+      .then(() => {
+        req.flash('success_msg', 'User was successfully to update ')
+        res.redirect('/admin/users')
+      })
       .catch(err => next(err))
   }
 }

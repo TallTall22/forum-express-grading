@@ -11,6 +11,10 @@ const methodOverride = require('method-override')
 const { getUser } = require('./helpers/auth-helpers')
 const handlebarsHelpers = require('./helpers/handlebars-helper')
 
+if (process.env.NDOE_ENV !== 'production') {
+  require('dotenv').config()
+}
+
 const app = express()
 const port = process.env.PORT || 3000
 const SESSION_SECRET = 'secret'
