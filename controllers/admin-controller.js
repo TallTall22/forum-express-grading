@@ -6,7 +6,7 @@ const adminController = {
     Restaurant.findAll({
       raw: true,
       nest: true,
-      include: [Category]
+      include: Category
     })
       .then(restaurants => res.render('admin/restaurants', { restaurants }))
       .catch(err => next(err))
