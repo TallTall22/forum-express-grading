@@ -1,0 +1,18 @@
+<div class=" card mb-3">
+  <div class=" row col-md-12">
+    <div class="col-md-4">
+      <img class="img-responsive center-block m-5" src="{{user.image}}"
+        style="width: 375px; transition: opacity 0.5s; opacity:0;" onload="this.style.opacity=1;">
+
+    </div>
+    <div class="col-md-8 p-5">
+      <ul class="list-unstyled">
+        <li class="mb-4"> {{user.name}}</li>
+        <li class="mb-4"> {{user.email}}</li>
+        {{#ifCond user.id userId}}
+        <a href="/users/{{user.id}}/edit" class="btn btn-primary">Edit</a>
+        {{/ifCond}}
+      </ul>
+    </div>
+  </div>
+</div>

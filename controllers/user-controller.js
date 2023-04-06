@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs')
+const { localFileHandler } = require('../helpers/file-helper')
 const db = require('../models')
 const { User } = db
+
 const usercontroller = {
   signUpPage: (req, res) => {
     res.render('sign')
@@ -36,6 +38,46 @@ const usercontroller = {
     req.logout()
     req.flash('success_msg', 'Logout successed')
     res.redirect('/signin')
+  },
+  getUser: (req, res, next) => {
+    const id = req.params.id
+    const userId = req.user.id
+    User.findByPk(id, {
+      raw: true
+    })
+      .then(user => res.render('profile', { user, userId }))
+      .catch(err => next(err))
+  },
+  editUser: (req, res, next) => {
+    const id = req.params.id
+    const userId = req.user.id
+    if (userId !== id) throw new Error('You do not have permission to edit profile!')
+    User.findByPk(id, {
+      raw: true
+    })
+      .then(user => res.render('edit-profile', { user }))
+      .catch(err => next(err))
+  },
+  putUser: (req, res, next) => {
+    const id = req.params.id
+    const name = req.body.name
+    if (!name) throw new Error('User name is required!')
+    const { file } = req
+    Promise.all([
+      User.findByPk(id),
+      localFileHandler(file)
+    ])
+      .then(([user, filePath]) => {
+        return user.update({
+          name,
+          image: filePath || user.image
+        })
+          .then(() => {
+            req.flash('success_msg', 'restaurant was successfully to update ')
+            res.redirect(`/users/${id}`)
+          })
+          .catch(err => next(err))
+      })
   }
 }
 
