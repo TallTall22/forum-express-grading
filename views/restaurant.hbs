@@ -16,7 +16,16 @@
   </div>
   <div class="col-md-8">
     <p style="white-space: break-spaces;">{{restaurant.description}}</p>
-     <a href="/restaurants/{{restaurant.id}}/dashboard" class="btn btn-primary">Dashboard</a>
+    <a href="/restaurants/{{restaurant.id}}/dashboard" class="btn btn-primary">Dashboard</a>
+    {{#if isFavorite}}
+    <form action="/favorite/{{restaurant.id}}?_method=DELETE" method="POST">
+      <button type="submit" class="btn btn-danger m-1">移除最愛</button>
+    </form>
+    {{else}}
+    <form action="/favorite/{{restaurant.id}}" method="POST">
+      <button type="submit" class="btn btn-primary m-1">加到最愛</button>
+    </form>
+    {{/if}}
   </div>
   <hr>
 </div>
@@ -47,5 +56,3 @@
   <button type="submit" class="btn btn-primary">Submit</button>
   <a class="btn btn-outline-secondary" href="javascript:history.back()">Back</a>
 </form>
-
-

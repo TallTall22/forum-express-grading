@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { localFileHandler } = require('../helpers/file-helper')
 const db = require('../models')
-const { User } = db
+const { User, Restaurant, Favorite } = db
 
 const usercontroller = {
   signUpPage: (req, res) => {
@@ -78,6 +78,46 @@ const usercontroller = {
           })
           .catch(err => next(err))
       })
+  },
+  addFavorite: (req, res, next) => {
+    const { restaurantId } = req.params
+    const userId = req.user.id
+    return Promise.all([
+      Restaurant.findByPk(restaurantId),
+      Favorite.findOne({
+        where: {
+          userId,
+          restaurantId
+        }
+      })
+    ])
+      .then(([restaurant, favorite]) => {
+        if (!restaurant) throw new Error('The restaurant is not existed!')
+        if (favorite) throw new Error('You have favorited this restaurant!')
+
+        return Favorite.create({
+          userId,
+          restaurantId
+        })
+      })
+      .then(() => res.redirect('back'))
+      .catch(err => next(err))
+  },
+  deleteFavorite: (req, res, next) => {
+    const { restaurantId } = req.params
+    const userId = req.user.id
+    Favorite.findOne({
+      where: {
+        userId,
+        restaurantId
+      }
+    })
+      .then(favorite => {
+        if (!favorite) throw new Error("You haven't favorited this restaurant")
+        return favorite.destroy()
+      })
+      .then(() => res.redirect('back'))
+      .catch(err => next(err))
   }
 }
 

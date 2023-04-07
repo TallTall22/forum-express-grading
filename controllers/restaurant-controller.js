@@ -1,5 +1,6 @@
 const { Restaurant, Category, Comment, User } = require('../models')
 const { getOffset, getPagination } = require('../helpers/pagination-helper')
+
 const restaurantController = {
   getRestaurants: (req, res, next) => {
     const DEFAULT_LIMIT = 9
@@ -22,9 +23,11 @@ const restaurantController = {
     ])
 
       .then(([restaurants, categories]) => {
+        const favoritedRestaurantId = req.user && req.user.FavoriteRestaurant.map(fr => fr.id)
         const data = restaurants.rows.map(r => ({
           ...r,
-          description: r.description.substring(0, 50)
+          description: r.description.substring(0, 50),
+          isFavorite: favoritedRestaurantId.includes(r.id)
         }))
         return res.render('restaurants', {
           restaurants: data, categories, categoryId, pagination: getPagination(limit, page, restaurants.count)
@@ -37,13 +40,16 @@ const restaurantController = {
     Restaurant.findByPk(id, {
       include: [
         Category,
-        { model: Comment, include: User }
-      ]
+        { model: Comment, include: User },
+        { model: User, as: 'FavoritedUser' }
+      ],
+      order: [[Comment, 'createdAt', 'desc']]
     })
       .then(restaurant => {
+        const isFavorite = restaurant.FavoritedUser.some(f => f.id === req.user.id)
         if (!restaurant) throw new Error('This restaurant is not existed')
         restaurant.increment('viewCounts', { by: 1 })
-        res.render('restaurant', { restaurant: restaurant.toJSON() })
+        res.render('restaurant', { restaurant: restaurant.toJSON(), isFavorite })
       })
       .catch(err => next(err))
   },
@@ -57,6 +63,28 @@ const restaurantController = {
       .then(restaurant => {
         if (!restaurant) throw new Error('This restaurant is not existed')
         res.render('dashboard', { restaurant })
+      })
+      .catch(err => next(err))
+  },
+  getFeeds: (req, res, next) => {
+    Promise.all([
+      Restaurant.findAll({
+        limit: 10,
+        order: [['createdAt', 'desc']],
+        include: Category,
+        raw: true,
+        nest: true
+      }),
+      Comment.findAll({
+        limit: 10,
+        order: [['createdAt', 'desc']],
+        include: [User, Restaurant],
+        raw: true,
+        nest: true
+      })
+    ])
+      .then(([restaurants, comments]) => {
+        res.render('feeds', { restaurants, comments })
       })
       .catch(err => next(err))
   }
