@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { localFileHandler } = require('../helpers/file-helper')
 const db = require('../models')
-const { User, Restaurant, Favorite, Followship } = db
+const { User, Restaurant, Favorite, Followship, Comment } = db
 
 const usercontroller = {
   signUpPage: (req, res) => {
@@ -42,27 +42,23 @@ const usercontroller = {
   getUser: (req, res, next) => {
     const id = req.params.id
     const userSelf = req.user
-    Promise.all([
-      User.findByPk(id, {
-        raw: true
-      }),
-      Restaurant.findAll({
-        raw: true
-      })
-    ])
-      .then(([user, restaurants]) => {
-        const commentRestaurant = []
-        for (let i = 0; i < userSelf.Comments.length; i++) {
-          const filterRes = (restaurants.filter(r => r.id === userSelf.Comments[i].restaurantId))
-          if (!commentRestaurant.some(r => r.id === filterRes[0].id)) {
-            commentRestaurant.push(...filterRes)
-          }
-        }
-        const commentCount = commentRestaurant.length
-        const favoriteCount = req.user.FavoriteRestaurant.length
-        const followingCount = req.user.Followings.length
-        const followerCount = req.user.Followers.length
-        res.render('profile', { user, userSelf, commentCount, favoriteCount, followingCount, followerCount, commentRestaurant })
+    User.findByPk(id, {
+      include: [
+        { model: Comment, include: Restaurant },
+        { model: Restaurant, as: 'FavoriteRestaurant' },
+        { model: User, as: 'Followings' },
+        { model: User, as: 'Followers' }
+      ],
+      nest: true
+    })
+      .then(user => {
+        user = user.toJSON()
+        const comments = user.Comments
+        const filterComments = comments.filter((comment, index) => {
+          return index === comments.findIndex(x => x.restaurantId === comment.restaurantId)
+        })
+        console.log(filterComments)
+        res.render('profile', { user, userSelf, filterComments })
       })
 
       .catch(err => next(err))
