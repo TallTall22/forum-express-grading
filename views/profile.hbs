@@ -9,10 +9,85 @@
       <ul class="list-unstyled">
         <li class="mb-4"> {{user.name}}</li>
         <li class="mb-4"> {{user.email}}</li>
-        {{#ifCond user.id userId}}
+        <li class="">{{commentCount}} 已評論餐廳</li>
+        <li class="">{{favoriteCount}} 收藏的餐廳</li>
+        <li class="">{{followingCount}} followings(追蹤中)</li>
+        <li class="mb-4">{{followerCount}} followers(跟隨者)</li>
+        {{#ifCond user.id userSelf.id}}
         <a href="/users/{{user.id}}/edit" class="btn btn-primary">Edit</a>
         {{/ifCond}}
       </ul>
+    </div>
+  </div>
+</div>
+<div class="col-md-12">
+  <div class="row">
+    <div class="col-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          {{followingCount}} followings(追蹤中)
+        </div>
+        <div class=" card-body">
+          {{#each userSelf.Followings}}
+          {{#if this.image}}
+          <img src="{{this.image}}" width="90px" height="90px" style="transition: opacity 0.5s; opacity:0;"
+            onload="this.style.opacity=1;" />
+          {{else}}
+          <img src="https://fakeimg.pl/90/" width="90px" height="90px" />
+          {{/if}}
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          {{followerCount}} followers(跟隨者)
+        </div>
+        <div class=" card-body">
+          {{#each userSelf.Followers}}
+          {{#if this.image}}
+          <img src="{{this.image}}" width="90px" height="90px" style="transition: opacity 0.5s; opacity:0;"
+            onload="this.style.opacity=1;" />
+          {{else}}
+          <img src="https://fakeimg.pl/90/" width="90px" height="90px" />
+          {{/if}}
+          {{/each}}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-8">
+      <div class="card ">
+        <div class="card-header">
+          {{commentCount}} 已評論餐廳
+        </div>
+        <div class=" card-body">
+          {{#each commentRestaurant}}
+          {{#if this.image}}
+          <img src="{{this.image}}" width="90px" height="90px" style="transition: opacity 0.5s; opacity:0;"
+            onload="this.style.opacity=1;" />
+          {{else}}
+          <img src="https://fakeimg.pl/90/" width="90px" height="90px" />
+          {{/if}}
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="card ">
+        <div class="card-header">
+          {{favoriteCount}} 收藏的餐廳
+        </div>
+        <div class=" card-body">
+          {{#each userSelf.FavoriteRestaurant}}
+          {{#if this.image}}
+          <img src="{{this.image}}" width="90px" height="90px" style="transition: opacity 0.5s; opacity:0;"
+            onload="this.style.opacity=1;" />
+          {{else}}
+          <img src="https://fakeimg.pl/90/" width="90px" height="90px" />
+          {{/if}}
+          {{/each}}
+        </div>
+      </div>
     </div>
   </div>
 </div>

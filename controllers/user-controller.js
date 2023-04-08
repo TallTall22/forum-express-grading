@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { localFileHandler } = require('../helpers/file-helper')
 const db = require('../models')
-const { User, Restaurant, Favorite } = db
+const { User, Restaurant, Favorite, Followship } = db
 
 const usercontroller = {
   signUpPage: (req, res) => {
@@ -41,17 +41,36 @@ const usercontroller = {
   },
   getUser: (req, res, next) => {
     const id = req.params.id
-    const userId = req.user.id
-    User.findByPk(id, {
-      raw: true
-    })
-      .then(user => res.render('profile', { user, userId }))
+    const userSelf = req.user
+    Promise.all([
+      User.findByPk(id, {
+        raw: true
+      }),
+      Restaurant.findAll({
+        raw: true
+      })
+    ])
+      .then(([user, restaurants]) => {
+        const commentRestaurant = []
+        for (let i = 0; i < userSelf.Comments.length; i++) {
+          const filterRes = (restaurants.filter(r => r.id === userSelf.Comments[i].restaurantId))
+          if (!commentRestaurant.some(r => r.id === filterRes[0].id)) {
+            commentRestaurant.push(...filterRes)
+          }
+        }
+        const commentCount = commentRestaurant.length
+        const favoriteCount = req.user.FavoriteRestaurant.length
+        const followingCount = req.user.Followings.length
+        const followerCount = req.user.Followers.length
+        res.render('profile', { user, userSelf, commentCount, favoriteCount, followingCount, followerCount, commentRestaurant })
+      })
+
       .catch(err => next(err))
   },
   editUser: (req, res, next) => {
     const id = req.params.id
     const userId = req.user.id
-    if (userId !== id) throw new Error('You do not have permission to edit profile!')
+    if (userId !== Number(id)) throw new Error('You do not have permission to edit profile!')
     User.findByPk(id, {
       raw: true
     })
@@ -115,6 +134,61 @@ const usercontroller = {
       .then(favorite => {
         if (!favorite) throw new Error("You haven't favorited this restaurant")
         return favorite.destroy()
+      })
+      .then(() => res.redirect('back'))
+      .catch(err => next(err))
+  },
+  getTopusers: (req, res, next) => {
+    User.findAll({
+      include: { model: User, as: 'Followers' }
+    })
+      .then(users => {
+        users = users.map(user => ({
+          ...user.toJSON(),
+          followerCount: user.Followers.length,
+          isFollowed: req.user.Followings.some(f => f.id === user.id)
+        }))
+        return users.sort((a, b) => b.followerCount - a.followerCount)
+      })
+      .then(users => {
+        res.render('top-users', { users })
+      })
+      .catch(err => next(err))
+  },
+  addFollowing: (req, res, next) => {
+    const id = req.params.id
+    const userId = req.user.id
+    Promise.all([
+      User.findByPk(id),
+      Followship.findOne({
+        where: {
+          followerId: userId,
+          followingId: id
+        }
+      })])
+      .then(([user, followship]) => {
+        if (!user) throw new Error('This user is not existed!')
+        if (followship) throw new Error('You are already following this user')
+        return Followship.create({
+          followerId: userId,
+          followingId: id
+        })
+      })
+      .then(() => res.redirect('back'))
+      .catch(err => next(err))
+  },
+  deleteFollowing: (req, res, next) => {
+    const id = req.params.id
+    const userId = req.user.id
+    Followship.findOne({
+      where: {
+        followerId: userId,
+        followingId: id
+      }
+    })
+      .then(followship => {
+        if (!followship) throw new Error('You are not following this user')
+        return followship.destroy()
       })
       .then(() => res.redirect('back'))
       .catch(err => next(err))
