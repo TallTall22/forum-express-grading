@@ -1,5 +1,5 @@
 const express = require('express')
-const routes = require('./routes')
+const { pages, apis } = require('./routes')
 const path = require('path')
 
 const exphbs = require('express-handlebars') // 引入 express-handlebars
@@ -40,7 +40,8 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use(routes)
+app.use('/api', apis)
+app.use(pages)
 
 app.listen(port, () => {
   console.info(`Example app listening on port ${port}!`)
