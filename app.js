@@ -1,3 +1,7 @@
+if (process.env.NDOE_ENV !== 'production') {
+  require('dotenv').config()
+}
+
 const express = require('express')
 const { pages, apis } = require('./routes')
 const path = require('path')
@@ -11,12 +15,8 @@ const methodOverride = require('method-override')
 const { getUser } = require('./helpers/auth-helpers')
 const handlebarsHelpers = require('./helpers/handlebars-helper')
 
-if (process.env.NDOE_ENV !== 'production') {
-  require('dotenv').config()
-}
-
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3002
 const SESSION_SECRET = 'secret'
 
 // 註冊 Handlebars 樣板引擎，並指定副檔名為 .hbs
